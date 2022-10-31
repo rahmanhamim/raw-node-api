@@ -13,7 +13,7 @@ const {
     notFoundHandler,
 } = require("../handlers/routeHandlers/notFoundHandler");
 
-// module scaffolding
+// modue scaffolding
 const handler = {};
 
 handler.handleReqRes = (req, res) => {
@@ -61,7 +61,7 @@ handler.handleReqRes = (req, res) => {
         });
 
         // response handle
-        res.end("<h1> hello world </h1>");
+        res.end("Hello world");
     });
 };
 
