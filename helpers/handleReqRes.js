@@ -3,6 +3,7 @@
 @Description : Handle Request Response
 @Author : HAMIM
 @Date : 28 Oct 2022
+*
 */
 
 // dependencies
@@ -13,7 +14,7 @@ const {
     notFoundHandler,
 } = require("../handlers/routeHandlers/notFoundHandler");
 
-// modue scaffolding
+// module scaffolding
 const handler = {};
 
 handler.handleReqRes = (req, res) => {
@@ -56,12 +57,13 @@ handler.handleReqRes = (req, res) => {
             const payloadString = JSON.stringify(payload);
 
             // return the final response
+            res.setHeader("Content-Type", "application/json");
             res.writeHead(statusCode);
             res.end(payloadString);
         });
 
         // response handle
-        res.end("Hello world");
+        // res.end("Hello world"); // it will occur an error
     });
 };
 

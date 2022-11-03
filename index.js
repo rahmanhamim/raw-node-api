@@ -16,9 +16,10 @@ const app = {};
 
 // testing file system
 // @TODO : will delete in future
-data.delete("test", "newFile", (err) => {
+/* data.delete("test", "newFile", (err) => {
     console.log(err);
 });
+ */
 
 // create server
 app.createServer = () => {
