@@ -13,11 +13,13 @@ const environments = {};
 environments.staging = {
     port: 5000,
     envName: "staging",
+    secretKey: "hashpassstaging",
 };
 
 environments.production = {
     port: 9000,
     envName: "production",
+    secretKey: "hashpassproduction",
 };
 
 // determine which environment was passed
