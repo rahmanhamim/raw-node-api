@@ -21,7 +21,7 @@ const handler = {};
 handler.handleReqRes = (req, res) => {
     // request handling
     // get the url and parse it
-    console.log(req.body);
+    // console.log(req.body);
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
     const trimmedPath = path.replace(/^\/+|\/+$/g, "");

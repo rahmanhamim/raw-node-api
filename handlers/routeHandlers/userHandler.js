@@ -122,7 +122,6 @@ handler._users.get = (requestProperties, callback) => {
 
 // @TODO: Authentication
 handler._users.put = (requestProperties, callback) => {
-    console.log(requestProperties.body);
     // check the phone number is valid
     const phone =
         typeof requestProperties.body.phone === "string" &&
