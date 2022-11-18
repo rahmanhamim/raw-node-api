@@ -105,9 +105,7 @@ handler._token.get = (requestProperties, callback) => {
     }
 };
 
-// @TODO: Authentication
 handler._token.put = (requestProperties, callback) => {
-    console.log(requestProperties);
     const id =
         typeof requestProperties.body.id === "string" &&
         requestProperties.body.id.trim().length == 20
@@ -126,7 +124,7 @@ handler._token.put = (requestProperties, callback) => {
             if (tokenObject.expires > Date.now()) {
                 tokenObject.expires = Date.now() + 60 * 60 * 1000;
                 // store the updated token
-                data.update("tokens", id, (err2) => {
+                data.update("tokens", id, tokenObject, (err2) => {
                     if (!err2) {
                         callback(200, {
                             message: "Token updated successfully",
@@ -150,7 +148,40 @@ handler._token.put = (requestProperties, callback) => {
     }
 };
 
-// @TODO: Authentication
-handler._token.delete = (requestProperties, callback) => {};
+handler._token.delete = (requestProperties, callback) => {
+    // check the token is valid
+    const id =
+        typeof requestProperties.queryStringObject.id === "string" &&
+        requestProperties.queryStringObject.id.trim().length == 20
+            ? requestProperties.queryStringObject.id
+            : false;
+
+    if (id) {
+        // lookup the file and delete
+        data.read("tokens", id, (err1, tokenData) => {
+            if (!err1 && tokenData) {
+                data.delete("tokens", id, (err2) => {
+                    if (!err2) {
+                        callback(200, {
+                            message: "Token was successfully deleted",
+                        });
+                    } else {
+                        callback(500, {
+                            error: "There was a server side error to delete the token",
+                        });
+                    }
+                });
+            } else {
+                callback(500, {
+                    error: "There was a server side error to delete the token.",
+                });
+            }
+        });
+    } else {
+        callback(400, {
+            error: "There was a problem in your request while deleting the token",
+        });
+    }
+};
 
 module.exports = handler;
