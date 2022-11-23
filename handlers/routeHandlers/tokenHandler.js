@@ -5,7 +5,6 @@
 @Date : 10 Nov 2022
 */
 
-// testing
 // dependencies
 const data = require("../../lib/data");
 const {
