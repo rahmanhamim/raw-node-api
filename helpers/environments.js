@@ -14,12 +14,14 @@ environments.staging = {
     port: 5000,
     envName: "staging",
     secretKey: "hashpassstaging",
+    maxChecks: 5,
 };
 
 environments.production = {
     port: 9000,
     envName: "production",
     secretKey: "hashpassproduction",
+    maxChecks: 5,
 };
 
 // determine which environment was passed

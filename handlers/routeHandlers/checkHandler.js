@@ -8,8 +8,9 @@
 // dependencies
 const data = require("../../lib/data");
 const { hash } = require("../../helpers/utilities");
-const { parseJSON } = require("../../helpers/utilities");
+const { parseJSON, createRandomString } = require("../../helpers/utilities");
 const tokenHandler = require("./tokenHandler");
+const { maxChecks } = require("../../helpers/environments");
 
 // module scaffolding
 const handler = {};
@@ -63,6 +64,80 @@ handler._check.post = (requestProperties, callback) => {
             : false;
 
     if (protocol && url && method && successCodes && timeoutSeconds) {
+        let token =
+            typeof requestProperties.headersObject.token === "string"
+                ? requestProperties.headersObject.token
+                : false;
+
+        // lookup the user phone by reading the token
+        data.read("tokens", token, (err1, tokenData) => {
+            if (!err1 && tokenData) {
+                let userPhone = parseJSON(tokenData).phone;
+                // lookup the user data
+                data.read("users", userPhone, (err2, userData) => {
+                    if (err2 && userData) {
+                        tokenHandler._token.verify(
+                            token,
+                            phone,
+                            (tokenValid) => {
+                                if (tokenValid) {
+                                    let userObject = parseJSON(userData);
+                                    let userChecks =
+                                        typeof userObject.checks === "object" &&
+                                        userObject.checks instanceof Array
+                                            ? userObject.checks
+                                            : [];
+
+                                    if (userChecks.length < maxChecks) {
+                                        let checkId = createRandomString(20);
+                                        let checkObject = {
+                                            id: checkId,
+                                            userPhone: phone,
+                                            protocol: protocol,
+                                            url: url,
+                                            method: method,
+                                            successCodes: successCodes,
+                                            timeoutSeconds: timeoutSeconds,
+                                        };
+                                        // save the object
+                                        data.create(
+                                            "checks",
+                                            checkId,
+                                            checkObject,
+                                            (err3) => {
+                                                if (!err3) {
+                                                    // add check id to the users object
+                                                } else {
+                                                    callback(500, {
+                                                        error: "server error while save checks",
+                                                    });
+                                                }
+                                            }
+                                        );
+                                    } else {
+                                        callback(401, {
+                                            error: "user has already reached maximum checks",
+                                        });
+                                    }
+                                } else {
+                                    callback(403, {
+                                        error: "Authentication failed!",
+                                    });
+                                }
+                            }
+                        );
+                    } else {
+                        callback(403, {
+                            error: "user not found!",
+                        });
+                    }
+                });
+            } else {
+                callback(403, {
+                    error: "Authentication problem",
+                });
+            }
+        });
     } else {
         callback(400, {
             error: "You have a problem in your inputs",
