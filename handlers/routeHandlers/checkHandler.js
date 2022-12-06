@@ -7,7 +7,6 @@
 
 // dependencies
 const data = require("../../lib/data");
-const { hash } = require("../../helpers/utilities");
 const { parseJSON, createRandomString } = require("../../helpers/utilities");
 const tokenHandler = require("./tokenHandler");
 const { maxChecks } = require("../../helpers/environments");
@@ -43,7 +42,7 @@ handler._check.post = (requestProperties, callback) => {
 
     let method =
         typeof requestProperties.body.method === "string" &&
-        ["get", "post", "put", "delete"].indexOf(
+        ["GET", "POST", "PUT", "DELETE"].indexOf(
             requestProperties.body.method
         ) > -1
             ? requestProperties.body.method
@@ -75,10 +74,10 @@ handler._check.post = (requestProperties, callback) => {
                 let userPhone = parseJSON(tokenData).phone;
                 // lookup the user data
                 data.read("users", userPhone, (err2, userData) => {
-                    if (err2 && userData) {
+                    if (!err2 && userData) {
                         tokenHandler._token.verify(
                             token,
-                            phone,
+                            userPhone,
                             (tokenValid) => {
                                 if (tokenValid) {
                                     let userObject = parseJSON(userData);
@@ -92,7 +91,7 @@ handler._check.post = (requestProperties, callback) => {
                                         let checkId = createRandomString(20);
                                         let checkObject = {
                                             id: checkId,
-                                            userPhone: phone,
+                                            userPhone: userPhone,
                                             protocol: protocol,
                                             url: url,
                                             method: method,
@@ -107,6 +106,31 @@ handler._check.post = (requestProperties, callback) => {
                                             (err3) => {
                                                 if (!err3) {
                                                     // add check id to the users object
+                                                    userObject.checks =
+                                                        userChecks;
+                                                    userObject.checks.push(
+                                                        checkId
+                                                    );
+
+                                                    // save the new user data
+                                                    data.update(
+                                                        "users",
+                                                        userPhone,
+                                                        userObject,
+                                                        (err4) => {
+                                                            if (!err4) {
+                                                                // return the data about the new check
+                                                                callback(
+                                                                    200,
+                                                                    checkObject
+                                                                );
+                                                            } else {
+                                                                callback(500, {
+                                                                    error: "server error while save checks",
+                                                                });
+                                                            }
+                                                        }
+                                                    );
                                                 } else {
                                                     callback(500, {
                                                         error: "server error while save checks",
