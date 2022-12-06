@@ -169,9 +169,160 @@ handler._check.post = (requestProperties, callback) => {
     }
 };
 
-handler._check.get = (requestProperties, callback) => {};
+handler._check.get = (requestProperties, callback) => {
+    const id =
+        typeof requestProperties.queryStringObject.id === "string" &&
+        requestProperties.queryStringObject.id.trim().length == 20
+            ? requestProperties.queryStringObject.id
+            : false;
+    if (id) {
+        // lookup the check
+        data.read("checks", id, (err, checkData) => {
+            if (!err && checkData) {
+                let token =
+                    typeof requestProperties.headersObject.token === "string"
+                        ? requestProperties.headersObject.token
+                        : false;
 
-handler._check.put = (requestProperties, callback) => {};
+                tokenHandler._token.verify(
+                    token,
+                    parseJSON(checkData).userPhone,
+                    (tokenValid) => {
+                        if (tokenValid) {
+                            callback(200, parseJSON(checkData));
+                        } else {
+                            callback(403, {
+                                error: "Authentication failure",
+                            });
+                        }
+                    }
+                );
+            } else {
+                callback(500, {
+                    error: "There was an error",
+                });
+            }
+        });
+    } else {
+        callback(400, {
+            error: "check id not valid",
+        });
+    }
+};
+
+handler._check.put = (requestProperties, callback) => {
+    let id =
+        typeof requestProperties.body.id === "string" &&
+        requestProperties.body.id.trim().length == 20
+            ? requestProperties.body.id
+            : false;
+
+    // validate inputs
+    let protocol =
+        typeof requestProperties.body.protocol === "string" &&
+        ["http", "https"].indexOf(requestProperties.body.protocol) > -1
+            ? requestProperties.body.protocol
+            : false;
+
+    let url =
+        typeof requestProperties.body.url === "string" &&
+        requestProperties.body.url.trim().length > 0
+            ? requestProperties.body.url
+            : false;
+
+    let method =
+        typeof requestProperties.body.method === "string" &&
+        ["GET", "POST", "PUT", "DELETE"].indexOf(
+            requestProperties.body.method
+        ) > -1
+            ? requestProperties.body.method
+            : false;
+
+    let successCodes =
+        typeof requestProperties.body.successCodes === "object" &&
+        requestProperties.body.successCodes instanceof Array
+            ? requestProperties.body.successCodes
+            : false;
+
+    let timeoutSeconds =
+        typeof requestProperties.body.timeoutSeconds === "number" &&
+        requestProperties.body.timeoutSeconds % 1 === 0 &&
+        requestProperties.body.timeoutSeconds >= 1 &&
+        requestProperties.body.timeoutSeconds <= 5
+            ? requestProperties.body.timeoutSeconds
+            : false;
+
+    if (id) {
+        if (protocol || url || method || successCodes || timeoutSeconds) {
+            data.read("checks", id, (err1, checkData) => {
+                if (!err1 && checkData) {
+                    let checkObject = parseJSON(checkData);
+                    let token =
+                        typeof requestProperties.headersObject.token ===
+                        "string"
+                            ? requestProperties.headersObject.token
+                            : false;
+                    tokenHandler._token.verify(
+                        token,
+                        checkObject.userPhone,
+                        (tokenValid) => {
+                            if (tokenValid) {
+                                if (protocol) {
+                                    checkObject.protocol = protocol;
+                                }
+                                if (url) {
+                                    checkObject.url = url;
+                                }
+                                if (method) {
+                                    checkObject.method = method;
+                                }
+                                if (successCodes) {
+                                    checkObject.successCodes = successCodes;
+                                }
+                                if (timeoutSeconds) {
+                                    checkObject.timeoutSeconds = timeoutSeconds;
+                                }
+                                //  store the check object
+                                data.update(
+                                    "checks",
+                                    id,
+                                    checkObject,
+                                    (err2) => {
+                                        if (!err2) {
+                                            callback(200, {
+                                                message: "updated successfully",
+                                            });
+                                        } else {
+                                            callback(500, {
+                                                error: "There was a server side error!",
+                                            });
+                                        }
+                                    }
+                                );
+                            } else {
+                                callback(403, {
+                                    error: "Authorization error!",
+                                });
+                            }
+                        }
+                    );
+                } else {
+                    callback(500, {
+                        error: "There was a problem in server!",
+                    });
+                }
+            });
+        } else {
+            callback(400, {
+                error: "You must provide at least one field to update",
+            });
+        }
+    } else {
+        callback(400, {
+            error: "check id not valid, failure occur!",
+        });
+    }
+};
 
 handler._check.delete = (requestProperties, callback) => {};
 
