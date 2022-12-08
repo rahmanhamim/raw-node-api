@@ -16,7 +16,9 @@ environments.staging = {
     secretKey: "hashpassstaging",
     maxChecks: 5,
     twilio: {
-        fromPhone: "",
+        fromPhone: "+15005550006",
+        accountSid: "AC76a4cccd928b53cacc4a016442d88b5d",
+        authToken: "7572f6cfe1f3c30bd5ed63249b59f36e",
     },
 };
 
@@ -26,7 +28,9 @@ environments.production = {
     secretKey: "hashpassproduction",
     maxChecks: 5,
     twilio: {
-        fromPhone: "",
+        fromPhone: "+15005550006",
+        accountSid: "AC76a4cccd928b53cacc4a016442d88b5d",
+        authToken: "7572f6cfe1f3c30bd5ed63249b59f36e",
     },
 };
 
